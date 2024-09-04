@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Voice Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            background: #000; /* Fallback color */
+        }
+
+        /* Animated Background */
+        .background-gif {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://i.gifer.com/4Ve7.gif') no-repeat center center;
+            background-size: cover;
+            z-index: -1;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80%;
+            max-width: 1200px;
+            height: 70%;
+            position: relative;
+        }
+
+        .main {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px; /* Adjust width */
+            height: 200px; /* Adjust height */
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            position: relative;
+        }
+
+        .main .heading {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px; /* Increased font size */
+            font-weight: bold;
+        }
+
+        .main .response {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4a90e2;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #357ab8;
+        }
+
+        /* Dropdown Menu */
+        .dropdown {
+            position: absolute;
+            top: 10px;
+            right: 10px; /* Positioned to the top-right corner */
+            z-index: 2;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Robot GIF */
+        .robot-gif {
+            width: 80px; /* Adjust size */
+            height: 80px; /* Adjust size */
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 20px; /* Space between GIF and content */
+        }
+
+        .robot-gif img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gif"></div>
+
+    <div class="container">
+        <div class="dropdown">
+            <button class="dropbtn">Commands</button>
+            <div class="dropdown-content">
+                <a href="#">Open Chrome</a>
+                <a href="#">Get Current Time</a>
+                <a href="#">Play on YouTube</a>
+                <a href="#">Get News</a>
+                <a href="#">Search on Google Maps</a>
+                <a href="#">Get Weather</a>
+                <a href="#">Tell a Joke</a>
+                <a href="#">Open WhatsApp Web</a>
+                <a href="#">Open IEEE Website</a>
+                <a href="#">Play on Netflix</a>
+                <a href="#">Search on Amazon</a>
+                <a href="#">Get State Capital</a>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="heading">Voice Assistant</div>
+            <div class="robot-gif">
+                <img src="https://i.gifer.com/YseV.gif" alt="Robot Face">
+            </div>
+            <div>
+                <button id="start-recording">Start Recording</button>
+                <div class="response" id="response"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize speech recognition
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+
+        document.getElementById('start-recording').addEventListener('click', () => {
+            recognition.start();
+        });
+
+        recognition.addEventListener('result', (event) => {
+            const command = event.results[0][0].transcript;
+            processCommand(command);
+        });
+
+        recognition.addEventListener('end', () => {
+            recognition.stop();
+        });
+
+        function processCommand(command) {
+            fetch('/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'command=' + encodeURIComponent(command)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseText = data.response;
+                document.getElementById('response').textContent = responseText;
+                speak(responseText);
+            });
+        }
+
+        // Function to speak the response
+        function speak(text) {
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+            synth.speak(utterance);
+        }
+    </script>
+</body>
+</html>
